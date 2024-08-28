@@ -1,13 +1,21 @@
-import { customer, items, orders, orderDetails } from "../db/db.js";
+
 import { OrderModel } from "../model/OrderModel.js";
 import { OrderDetailsModel } from "../model/OrderDetailsModel.js";
 import { loadCMBDetails } from "./orderDetails.js";
 
 function generateOrderId() {
-    const orderIdInput = $('#order-id');
-    const orderIdPrefix = "ORD-";
-    const orderIdNumber = String(orders.length + 1).padStart(4, '0');
-    orderIdInput.val(orderIdPrefix + orderIdNumber);
+    $.ajax({
+        url: "http://localhost:8080/orders",
+        type: "GET",
+        data: { "nextid": "nextid" },
+        success: (res) => {
+            let code = res.substring(1, res.length - 1);
+            $('#order-id').val(code);
+        },
+        error: (err) => {
+            console.error(err);
+        }
+    });
 }
 
 $(document).ready(function () {
@@ -18,7 +26,6 @@ $(document).ready(function () {
 });
 
 export function loadCombos(array, comboBoxId) {
-    console.log("combo-box loaded", array, comboBoxId);
     var comboBox = $('#' + comboBoxId);
     comboBox.empty();
     comboBox.append($('<option>', { value: '', text: 'Select Customer ID...' }));
@@ -29,20 +36,25 @@ export function loadCombos(array, comboBoxId) {
 
 $('#customer-id-order').on('change', () => {
     var selectedId = $('#customer-id-order').val();
-    var selectedCustomer = customer.find(c => c.id == selectedId);
-    if (selectedCustomer) {
-        $('#customer-name-orderForm').val(selectedCustomer.name);
-        $('#customer_address-orderForm').val(selectedCustomer.address);
-        $('#customer-salary-orderForm').val(selectedCustomer.salary);
-    } else {
-        $('#customer-name-orderForm').val('');
-        $('#customer_address-orderForm').val('');
-        $('#customer-salary-orderForm').val('');
-    }
+    $.ajax({
+        url: "http://localhost:8080/customer",
+        type: "GET",
+        data: { "id": selectedId },
+        success: (res) => {
+            const selectedCustomer = JSON.parse(res);
+            if (selectedCustomer) {
+                $('#customer-name-orderForm').val(selectedCustomer.name);
+                $('#customer_address-orderForm').val(selectedCustomer.address);
+                $('#customer-salary-orderForm').val(selectedCustomer.salary);
+            }
+        },
+        error: (err) => {
+            console.error(err);
+        }
+    });
 });
 
 export function loadComboItem(array, comboBoxId) {
-    console.log("combo-box loaded", array, comboBoxId);
     var comboBox = $('#' + comboBoxId);
     comboBox.empty();
     comboBox.append($('<option>', { value: '', text: 'Select Item Code...' }));
@@ -53,18 +65,23 @@ export function loadComboItem(array, comboBoxId) {
 
 $('#inputState-item').on('change', () => {
     var selectedCode = $('#inputState-item').val();
-    var selectedItem = items.find(i => i.itemCode == selectedCode);
-    if (selectedItem) {
-        $('#inputPassword4').val(selectedItem.itemCode);
-        $('#item-name-orderForm').val(selectedItem.name);
-        $('#item-price-orderForm').val(selectedItem.price);
-        $('#qtyHand').val(selectedItem.qty);
-    } else {
-        $('#inputPassword4').val('');
-        $('#item-name-orderForm').val('');
-        $('#item-price-orderForm').val('');
-        $('#qtyHand').val('');
-    }
+    $.ajax({
+        url: "http://localhost:8080/item",
+        type: "GET",
+        data: { "code": selectedCode },
+        success: (res) => {
+            const selectedItem = JSON.parse(res);
+            if (selectedItem) {
+                $('#inputPassword4').val(selectedItem.itemCode);
+                $('#item-name-orderForm').val(selectedItem.name);
+                $('#item-price-orderForm').val(selectedItem.price);
+                $('#qtyHand').val(selectedItem.qty);
+            }
+        },
+        error: (err) => {
+            console.error(err);
+        }
+    });
 });
 
 let cart = [];
@@ -93,7 +110,7 @@ $('#btn-item').on('click', () => {
             clearItemSection();
         }
     } else {
-        alert("not enough quantity in stock");
+        alert("Not enough quantity in stock");
     }
 });
 
@@ -193,15 +210,13 @@ $('#btn-order').on('click', () => {
             }
         });
 
-        const newOrder = new OrderModel(orderId, orderDate, total , customerId);
+        const newOrder = new OrderModel(orderId, orderDate, total, customerId);
         orders.push(newOrder);
 
         cart.forEach(cartItem => {
             let orderDetailsItem = new OrderDetailsModel(orderId, cartItem.itemId, cartItem.unitPrice, cartItem.qty, cartItem.total);
             orderDetails.push(orderDetailsItem);
         });
-
-        console.log("order details", cart);
 
         loadCMBDetails(orders, 'inputGroupSelect-orderDetails');
 
@@ -215,12 +230,4 @@ $('#btn-order').on('click', () => {
         alert("Payment successful. Order has been placed.");
     }
 });
-
-
-
-
-
-
-
-
 
