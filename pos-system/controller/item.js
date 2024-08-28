@@ -22,24 +22,6 @@ function initialize() {
     });
 }
 
-
-
-function nextId() {
-    $.ajax({
-        url: "http://localhost:8080/item",
-        type: "GET",
-        data: { "nextid": "nextid" },
-        success: (res) => {
-            let code = res.substring(1, res.length - 1);
-            console.log(code);
-            $("#itemCode").val(code);
-        },
-        error: (err) => {
-            console.error(err);
-        }
-    });
-}
-
 // Function to validate item name
 function validateItemName(name) {
     const lettersOnlyRegex = /^[A-Za-z\s]+$/;
@@ -103,9 +85,9 @@ $("#item-save").on('click', () => {
             console.error(err);
         }
     });
+    console.log(newItem);
+    initialize();
 
-    loadItemTable(items); // Reload item table
-    $("#itemCode").val(nextId());
 });
 
 // Item selection change event
@@ -116,13 +98,25 @@ $("#inputGroupSelect-item").on('change', () => {
         const selectedItem = items.find(item => item.itemCode === selectedItemCode);
         if (selectedItem) {
             $("#item-tbl-body").empty();
-            const record = `<tr>
-                <td class="item-code-value">${selectedItem.itemCode}</td>
-                <td class="item-name-value">${selectedItem.name}</td>
-                <td class="item-price-value">${selectedItem.price}</td>
-                <td class="item-qty-value">${selectedItem.qty}</td>
+
+            $.ajax({
+                url: "http://localhost:8080/item",
+                type: "GET",
+                data: { "nextid": "nextid" },
+                success: (res) => {
+                    let item=JSON.parse(res);
+                    const record = `<tr>
+                <td class="item-code-value">${item.itemCode}</td>
+                <td class="item-name-value">${item.name}</td>
+                <td class="item-price-value">${item.price}</td>
+                <td class="item-qty-value">${item.qty}</td>
             </tr>`;
-            $("#item-tbl-body").append(record);
+                    $("#item-tbl-body").append(record);
+                },
+                error: (err) => {
+                    console.error(err);
+                }
+            });
         }
     } else {
         loadItemTable(items);
@@ -178,9 +172,22 @@ $("#item-tbl-body").on('click', 'tr', function () {
 $("#item-delete").on('click', () => {
     const confirmation = confirm("Are you sure you want to delete this item?");
     if (confirmation) {
-        items.splice(recordIndex, 1);
-        alert("Item deleted successfully");
-        loadItemTable(items);
+        let id=$("#itemCode").val();
+        $.ajax({
+            url: "http://localhost:8080/item?id=" + id,
+            type: "DELETE",
+            success: (res) => {
+                console.log(JSON.stringify(res));
+                alert("item deleted successfully.");
+            },
+            error: (res) => {
+                console.error(res);
+            }
+        });
+
+        setTimeout(()=>{
+            initialize()
+        },1000)
     } else {
         alert("Delete canceled");
     }
@@ -204,16 +211,21 @@ $('#revew-item').on('click', () => {
     const itemCode = $('#itemCode').val();
     const itemIndex = items.findIndex(i => i.itemCode === itemCode);
 
-    if (itemIndex !== -1) {
-        const selectedItem = items[itemIndex];
-        $("#item_name").val(selectedItem.name);
-        $("#item_price").val(selectedItem.price);
-        $("#item_qty").val(selectedItem.qty);
-
-        console.log("Item details filled successfully.");
-    } else {
-        alert("Item with the entered code does not exist.");
-    }
+    $.ajax({
+        url: "http://localhost:8080/customer",
+        type: "GET",
+        data: {"id": customerId},
+        success: (res) => {
+            let item = JSON.parse(res);
+            $("#item_name").val(item.name);
+            $("#item_price").val(item.price);
+            $("#item_qty").val(item.qty);
+        },
+        error: (err) => {
+            console.error(err);
+            alert("Customer with the entered ID does not exist.");
+        }
+    });
 });
 
 // Update item button click event
@@ -240,24 +252,29 @@ $("#update-item-model").on("click", () => {
     const updatedName = $("#item_name").val();
     const updatedPrice = $("#item_price").val();
     const updatedQty = $("#item_qty").val();
+    let item=new ItemModel(updatedCode,updatedName,updatedPrice,updatedQty);
+    let itemJson=JSON.stringify(item);
 
-    const itemIndex = items.findIndex(i => i.itemCode === updatedCode);
+    $.ajax({
+        url: "http://localhost:8080/item",
+        type: "PUT",
+        data: itemJson,
+        contentType: "application/json",
+        success: (res) => {
+            alert("Item updated successfully.");
+        },
+        error: (err) => {
+            console.error(err);
+            alert("item not updated.");
+        }
+    });
 
-    if (itemIndex !== -1) {
-        items[itemIndex].name = updatedName;
-        items[itemIndex].price = updatedPrice;
-        items[itemIndex].qty = updatedQty;
+    setTimeout(()=>{
+        initialize()
+    },1000)
 
-        console.log("Updated Item Code:", updatedCode);
-        console.log("Updated Item Name:", updatedName);
-        console.log("Updated Item Price:", updatedPrice);
-        console.log("Updated Item Quantity:", updatedQty);
 
-        loadItemTable(items);
-        $("#staticBackdrop-item").modal("hide");
-    } else {
-        alert("Item with the entered code does not exist.");
-    }
+
 });
 
 // Function to load items into a combo box
