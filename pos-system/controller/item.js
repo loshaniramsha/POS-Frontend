@@ -133,7 +133,7 @@ $("#inputGroupSelect-item").on('change', () => {
 });
 
 // Function to load items into the table
-function loadItemTable() {
+/*function loadItemTable() {
     $("#item-tbl-body").empty();
     let itemArray = [];
 
@@ -145,7 +145,7 @@ function loadItemTable() {
             console.log(res);
             itemArray = JSON.parse(res);
             console.log(itemArray);
-            /*setItemIds(itemArray);*/
+            /!*setItemIds(itemArray);*!/
 
             itemArray.map((item, index) => {
                 const record = `<tr>
@@ -161,7 +161,41 @@ function loadItemTable() {
             console.error(err);
         }
     });
+}*/
+
+// Function to load items into the table
+function loadItemTable() {
+    $("#item-tbl-body").empty(); // Clear the current table body
+
+    $.ajax({
+        url: "http://localhost:8080/item",
+        type: "GET",
+        data: { "all": "getAll" }, // Request to get all items
+        success: (res) => {
+            console.log(res);
+            let itemArray = JSON.parse(res); // Parse the JSON response
+            console.log(itemArray);
+
+            // Loop through the array and add each item to the table
+            itemArray.forEach((item) => {
+                const record = `<tr>
+                    <td class="item-code-value">${item.itemId}</td>
+                    <td class="item-name-value">${item.itemName}</td>
+                    <td class="item-price-value">${item.itemPrice}</td>
+                    <td class="item-qty-value">${item.itemQty}</td>
+                </tr>`;
+                $("#item-tbl-body").append(record); // Append each record to the table body
+            });
+        },
+        error: (err) => {
+            console.error(err); // Log errors to the console
+            alert("Failed to load items. Please try again.");
+        }
+    });
 }
+
+
+
 
 // Item table row click event to select an item
 $("#item-tbl-body").on('click', 'tr', function () {
