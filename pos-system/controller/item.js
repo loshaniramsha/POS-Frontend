@@ -215,26 +215,24 @@ $('#exite-item-model').on('click', () => {
     $('#staticBackdrop-item').modal('hide');
 });
 
-// Review item button click event
-/*$('#revew-item').on('click', () => {
-    console.log("Click review")
-    var itemId=$("#itemCode").val();
-    $.ajax({
-        url: "http://localhost:8080/item",
-        type: "GET",
-        data: {"id": itemId},
-        success: (res) => {
-            let item = JSON.parse(res);
-            $("#item_name").val(item.name);
-            $("#item_price").val(item.price);
-            $("#item_qty").val(item.qty);
-        },
-        error: (err) => {
-            console.error(err);
-            alert("Customer with the entered ID does not exist.");
-        }
-    });
-});*/
+
+// Update item button click event
+$('#update-item').on('click', () => {
+    const code = $("#itemCode").val();
+    const name = $("#item_name").val();
+    const price = $("#item_price").val();
+    const qty = $("#item_qty").val();
+
+    if (code) {
+        $("#staticBackdrop-item").modal("show");
+        $("#itemCode").val(code);
+        $("#item_name").val(name);
+        $("#item_price").val(price);
+        $("#item_qty").val(qty);
+    } else {
+        alert("Please select an item from the table.");
+    }
+});
 
 // Review item button click event
 $('#revew-item').on('click', () => {
@@ -269,24 +267,6 @@ $('#revew-item').on('click', () => {
 
 
 
-
-// Update item button click event
-$('#update-item').on('click', () => {
-    const code = $("#itemCode").val();
-    const name = $("#item_name").val();
-    const price = $("#item_price").val();
-    const qty = $("#item_qty").val();
-
-    if (code) {
-        $("#staticBackdrop-item").modal("show");
-        $("#itemCode").val(code);
-        $("#item_name").val(name);
-        $("#item_price").val(price);
-        $("#item_qty").val(qty);
-    } else {
-        alert("Please select an item from the table.");
-    }
-});
 
 // Update item modal button click event
 $("#update-item-model").on("click", () => {
