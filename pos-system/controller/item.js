@@ -61,21 +61,27 @@ $("#item-save").on('click', () => {
     const itemPrice = $("#item_price").val();
     const itemQty = $("#item_qty").val();
 
-
+    // Validate fields
     if (!validateItemName(itemName)) return;
     if (!validateItemPrice(itemPrice)) return;
     if (!validateItemQty(itemQty)) return;
 
     $('#close-item-model').click();
 
-    const newItem = new ItemModel(itemCode, itemName, itemPrice, itemQty); // Create new item instance
+    const newItem = {
+        itemId: itemCode,
+        itemName: itemName,
+        itemPrice: itemPrice,
+        itemQty: itemQty
+    }; // Create new item object
+
     let jsonItem = JSON.stringify(newItem); // Convert item to JSON
 
     $.ajax({
         url: "http://localhost:8080/item",
         type: "POST",
         data: jsonItem,
-        headers: { "Content-Type": "application/json" },
+        contentType: "application/json", // Correctly set Content-Type
         success: (res) => {
             console.log(JSON.stringify(res));
             alert("Item saved successfully");
@@ -85,10 +91,13 @@ $("#item-save").on('click', () => {
             console.error(err);
         }
     });
+
     console.log(newItem);
     initialize();
-
 });
+
+
+
 
 // Item selection change event
 $("#inputGroupSelect-item").on('change', () => {
@@ -207,14 +216,13 @@ $('#exite-item-model').on('click', () => {
 });
 
 // Review item button click event
-$('#revew-item').on('click', () => {
-    const itemCode = $('#itemCode').val();
-    const itemIndex = items.findIndex(i => i.itemCode === itemCode);
-
+/*$('#revew-item').on('click', () => {
+    console.log("Click review")
+    var itemId=$("#itemCode").val();
     $.ajax({
-        url: "http://localhost:8080/customer",
+        url: "http://localhost:8080/item",
         type: "GET",
-        data: {"id": customerId},
+        data: {"id": itemId},
         success: (res) => {
             let item = JSON.parse(res);
             $("#item_name").val(item.name);
@@ -226,7 +234,41 @@ $('#revew-item').on('click', () => {
             alert("Customer with the entered ID does not exist.");
         }
     });
+});*/
+
+// Review item button click event
+$('#revew-item').on('click', () => {
+    console.log("Click review");
+    const itemId = $("#itemCode").val();
+
+    if (!itemId) {
+        alert("Please enter an item code to review.");
+        return;
+    }
+
+    $.ajax({
+        url: "http://localhost:8080/item",
+        type: "GET",
+        data: { "id": itemId },
+        success: (res) => {
+            if (res) {
+                let item = JSON.parse(res);
+                $("#item_name").val(item.itemName);  // Corrected property name
+                $("#item_price").val(item.itemPrice);  // Corrected property name
+                $("#item_qty").val(item.itemQty);  // Corrected property name
+            } else {
+                alert("No item found with the entered ID.");
+            }
+        },
+        error: (err) => {
+            console.error(err);
+            alert("Error retrieving item. Please check the item ID.");
+        }
+    });
 });
+
+
+
 
 // Update item button click event
 $('#update-item').on('click', () => {
