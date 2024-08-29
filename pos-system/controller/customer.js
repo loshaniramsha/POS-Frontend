@@ -96,7 +96,7 @@ $('#save-customer').on('click', () => {
     initialize();
 });
 
-$('#inputGroupSelect-customer').on('input', () => {
+$('#inputGroupSelect-customer').on('change', () => {
     if ($('#inputGroupSelect-customer').val() !== 'select the customer') {
         $('#customer-tbl-body').empty();
 
