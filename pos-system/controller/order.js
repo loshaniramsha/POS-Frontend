@@ -3,6 +3,13 @@ import { OrderModel } from "../model/OrderModel.js";
 import { OrderDetailsModel } from "../model/OrderDetailsModel.js";
 import { loadCMBDetails } from "./orderDetails.js";
 
+initialize()
+
+function initialize() {
+    generateOrderId()
+
+}
+
 function generateOrderId() {
     $.ajax({
         url: "http://localhost:8080/orders",
@@ -18,12 +25,6 @@ function generateOrderId() {
     });
 }
 
-$(document).ready(function () {
-    generateOrderId();
-    loadCombos(customer, 'inputGroupSelect-customer');
-    loadCombos(customer, 'customer-id-order');
-    loadComboItem(items, 'inputState-item');
-});
 
 export function loadCombos(array, comboBoxId) {
     var comboBox = $('#' + comboBoxId);
@@ -59,7 +60,7 @@ export function loadComboItem(array, comboBoxId) {
     comboBox.empty();
     comboBox.append($('<option>', { value: '', text: 'Select Item Code...' }));
     array.forEach(function (item) {
-        comboBox.append($('<option>', { value: item.itemCode, text: item.itemCode }));
+        comboBox.append($('<option>', { value: item.itemId, text: item.itemId }));
     });
 }
 
