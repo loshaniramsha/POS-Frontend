@@ -1,5 +1,6 @@
 
 import ItemModel from "../model/ItemModel.js";
+import {loadComboItem, loadCombos} from "./order.js";
 
 let recordIndex;
 
@@ -20,6 +21,10 @@ function initialize() {
             console.error(err);
         }
     });
+
+    setTimeout(() => {
+        loadItemTable();
+    }, 1000);
 }
 
 // Function to validate item name
@@ -97,71 +102,43 @@ $("#item-save").on('click', () => {
 });
 
 
-
-
 // Item selection change event
 $("#inputGroupSelect-item").on('change', () => {
-    const selectedItemCode = $('#inputGroupSelect-item').val();
 
-    if (selectedItemCode !== 'select the item') {
-        const selectedItem = items.find(item => item.itemCode === selectedItemCode);
-        if (selectedItem) {
-            $("#item-tbl-body").empty();
 
-            $.ajax({
-                url: "http://localhost:8080/item",
-                type: "GET",
-                data: { "nextid": "nextid" },
-                success: (res) => {
-                    let item=JSON.parse(res);
-                    const record = `<tr>
-                <td class="item-code-value">${item.itemCode}</td>
-                <td class="item-name-value">${item.name}</td>
-                <td class="item-price-value">${item.price}</td>
-                <td class="item-qty-value">${item.qty}</td>
-            </tr>`;
-                    $("#item-tbl-body").append(record);
-                },
-                error: (err) => {
-                    console.error(err);
-                }
-            });
-        }
+    if ($('#inputGroupSelect-item').val() !== 'select the item') {
+        $("#item-tbl-body").empty();
+        // Make an AJAX call to fetch the selected item details
+        $.ajax({
+            url: "http://localhost:8080/item",
+            type: "GET",
+            data: { "id":$('#inputGroupSelect-item').val() },  // Correct parameter to match the ID
+            success: (res) => {
+                let item = JSON.parse(res);  // Parse the JSON response
+                $("#item-tbl-body").empty();  // Clear the table body before adding the new item
+
+                // Create a table row for the selected item
+                const record = `<tr>
+                    <td class="item-code-value">${item.itemId}</td>
+                    <td class="item-name-value">${item.itemName}</td>
+                    <td class="item-price-value">${item.itemPrice}</td>
+                    <td class="item-qty-value">${item.itemQty}</td>
+                </tr>`;
+
+                $("#item-tbl-body").append(record);  // Append the item record to the table
+            },
+            error: (err) => {
+                console.error(err);
+                alert("Failed to load the selected item. Please try again.");
+            }
+        });
     } else {
-        loadItemTable(items);
+        // Load all items if 'select the item' is chosen
+        loadItemTable();  // Corrected function call to load all items
     }
 });
 
-// Function to load items into the table
-/*function loadItemTable() {
-    $("#item-tbl-body").empty();
-    let itemArray = [];
 
-    $.ajax({
-        url: "http://localhost:8080/item",
-        type: "GET",
-        data: { "all": "getAll" },
-        success: (res) => {
-            console.log(res);
-            itemArray = JSON.parse(res);
-            console.log(itemArray);
-            /!*setItemIds(itemArray);*!/
-
-            itemArray.map((item, index) => {
-                const record = `<tr>
-                    <td class="item-code-value">${item.itemCode}</td>
-                    <td class="item-name-value">${item.name}</td>
-                    <td class="item-price-value">${item.price}</td>
-                    <td class="item-qty-value">${item.qty}</td>
-                </tr>`;
-                $("#item-tbl-body").append(record);
-            });
-        },
-        error: (err) => {
-            console.error(err);
-        }
-    });
-}*/
 
 // Function to load items into the table
 function loadItemTable() {
@@ -175,6 +152,8 @@ function loadItemTable() {
             console.log(res);
             let itemArray = JSON.parse(res); // Parse the JSON response
             console.log(itemArray);
+            loadItemComboBoxes(itemArray, "inputGroupSelect-item");
+            loadComboItem(itemArray, "item-id-order");
 
             // Loop through the array and add each item to the table
             itemArray.forEach((item) => {
@@ -199,11 +178,13 @@ function loadItemTable() {
 
 // Item table row click event to select an item
 $("#item-tbl-body").on('click', 'tr', function () {
-    recordIndex = $(this).index();
+   // recordIndex = $(this).index();
     const code = $(this).find(".item-code-value").text();
     const name = $(this).find(".item-name-value").text();
     const price = $(this).find(".item-price-value").text();
     const qty = $(this).find(".item-qty-value").text();
+
+    $('#inputGroupSelect-item').val(code);
 
     $("#itemCode").val(code);
     $("#item_name").val(name);
@@ -334,7 +315,22 @@ $("#update-item-model").on("click", () => {
 });
 
 // Function to load items into a combo box
+function loadItemComboBoxes(array, comboBoxId) {
+    var comboBox = $('#' + comboBoxId);
+    comboBox.empty();
 
+    comboBox.append($('<option>', {
+        value: 'select the item',
+        text: 'select the item'
+    }));
+
+    array.forEach(function(item) {
+        comboBox.append($('<option>', {
+            value: item.itemId,
+            text: item.itemId
+        }));
+    });
+}
 
 
 
