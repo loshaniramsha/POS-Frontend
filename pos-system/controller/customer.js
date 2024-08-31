@@ -1,5 +1,6 @@
 
 import CustomerModel from "../model/CustomerModel.js";
+import {loadCombos} from "./order.js";
 
 var recordIndex;
 initialize();
@@ -134,6 +135,7 @@ function loadTable() {
         success: (res) => {
             customerArray = JSON.parse(res);
             loadComboBoxes(customerArray, "inputGroupSelect-customer");
+            loadCombos(customerArray, "customer-id-order");
             customerArray.map((customer) => {
                 let record = `<tr>
                         <td class="customer-id-value">${customer.id}</td>
